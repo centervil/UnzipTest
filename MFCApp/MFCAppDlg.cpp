@@ -65,6 +65,7 @@ BEGIN_MESSAGE_MAP(CMFCAppDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
+	ON_BN_CLICKED(IDC_BUTTON1, &CMFCAppDlg::OnBnClickedButton1)
 END_MESSAGE_MAP()
 
 
@@ -153,3 +154,72 @@ HCURSOR CMFCAppDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
+
+
+void CMFCAppDlg::OnBnClickedButton1()
+{
+	HRESULT hResult = E_FAIL;
+
+	STARTUPINFO         tStartupInfo = { 0 };
+	PROCESS_INFORMATION tProcessInfomation = { 0 };
+
+	/*
+		プロセスの起動(notepadを起動する)
+	*/
+	//wchar_t cmd[] = L"C:\\Windows\\System32\\notepad.exe";
+	wchar_t cmd[] = L"..\\Modules\\UnzipNetFrm.exe";
+	BOOL bResult = CreateProcess(
+		NULL	  
+		, cmd
+		, NULL
+		, NULL
+		, FALSE
+		, 0
+		, NULL
+		, NULL
+		, &tStartupInfo
+		, &tProcessInfomation
+	);
+	if (0 == bResult) {
+		return;
+	}
+
+
+	/*
+		プロセスの終了を待つ
+	*/
+	DWORD dwResult = ::WaitForSingleObject(
+		tProcessInfomation.hProcess
+		, INFINITE
+	);
+	if (WAIT_FAILED == dwResult) {
+		hResult = HRESULT_FROM_WIN32(::GetLastError());
+		goto err;
+	}
+
+
+	/*
+		プロセスの終了コードを取得する
+	*/
+	DWORD dwExitCode;
+	bResult = ::GetExitCodeProcess(
+		tProcessInfomation.hProcess
+		, &dwExitCode
+	);
+	if (0 == bResult) {
+		hResult = HRESULT_FROM_WIN32(::GetLastError());
+		goto err;
+	}
+
+	// 終了コードの表示
+	//wprintf(L"dwExitCode = %d¥n", dwExitCode);
+
+
+err:
+	// ハンドルの解放
+	::CloseHandle(tProcessInfomation.hProcess);
+	::CloseHandle(tProcessInfomation.hThread);
+
+	// 正常終了
+	return;
+}

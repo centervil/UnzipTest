@@ -5,3 +5,5 @@
 /.vs/UnzipTest/v16
 /MFCApp/MFCApp.vcxproj.user
 /MFCApp/MFCApp.vcxproj.filters
+/Debug
+/MFCApp/Debug

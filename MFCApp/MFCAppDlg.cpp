@@ -163,17 +163,19 @@ void CMFCAppDlg::OnBnClickedButton1()
 {
 	HANDLE hTh[10];
 	unsigned int thID = 0;
+	TCHAR str[][10] = { _T("0"),_T("1"),_T("2"),_T("3"),_T("4"),_T("5"),_T("6"),_T("7"),_T("8"),_T("9"), };
 
 	for (int i = 0; i < 10; i++) {
-		hTh[i] = (HANDLE)_beginthreadex(NULL, 0, ProcessThread, L"", 0, &thID);
+		hTh[i] = (HANDLE)_beginthreadex(NULL, 0, ProcessThread, str[i], 0, &thID);
 	}
 
 	::WaitForMultipleObjects(10,hTh,true,INFINITE);
 
-err:
 	// ハンドルの解放
 	for (int i = 0; i < 10; i++) {
-		::CloseHandle(hTh[i]);
+		if (hTh[i]) {
+			::CloseHandle(hTh[i]);
+		}
 	}
 
 	// 正常終了
@@ -189,11 +191,11 @@ unsigned int __stdcall ProcessThread(void *pParam)
 	STARTUPINFO         tStartupInfo = { 0 };
 	PROCESS_INFORMATION tProcessInfomation = { 0 };
 
+	wstring str(reinterpret_cast<TCHAR *>(pParam));
 	/*
 		プロセスの起動
 	*/
 	wstring cmdStr = L"..\\Modules\\UnzipNetFrm.exe " + str;
-	//wchar_t cmd[] = L"..\\Modules\\UnzipNetFrm.exe";
 	BOOL bResult = CreateProcess(
 		NULL
 		, (LPWSTR)cmdStr.c_str()

@@ -12,8 +12,10 @@
 #define new DEBUG_NEW
 #endif
 #include <string>
+#include <mutex>
 using namespace std;
 
+std::mutex mutex_;
 unsigned int __stdcall ProcessThread(void* pParam);
 
 // アプリケーションのバージョン情報に使われる CAboutDlg ダイアログ
@@ -192,10 +194,11 @@ unsigned int __stdcall ProcessThread(void *pParam)
 	PROCESS_INFORMATION tProcessInfomation = { 0 };
 
 	wstring str(reinterpret_cast<TCHAR *>(pParam));
+	wstring cmdStr = L"..\\Modules\\UnzipNetFrm.exe " + str;
 	/*
 		プロセスの起動
 	*/
-	wstring cmdStr = L"..\\Modules\\UnzipNetFrm.exe " + str;
+	mutex_.lock();
 	BOOL bResult = CreateProcess(
 		NULL
 		, (LPWSTR)cmdStr.c_str()
@@ -248,6 +251,7 @@ err:
 	::CloseHandle(tProcessInfomation.hProcess);
 	::CloseHandle(tProcessInfomation.hThread);
 
+	mutex_.unlock();
 	// 正常終了
 	return 0;
 }

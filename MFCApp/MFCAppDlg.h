@@ -33,4 +33,5 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	afx_msg void OnBnClickedButton1();
+	//unsigned __stdcall ProcessThread(void*);
 };

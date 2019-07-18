@@ -11,7 +11,10 @@
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
+#include <string>
+using namespace std;
 
+unsigned int __stdcall ProcessThread(void* pParam);
 
 // アプリケーションのバージョン情報に使われる CAboutDlg ダイアログ
 
@@ -20,12 +23,12 @@ class CAboutDlg : public CDialogEx
 public:
 	CAboutDlg();
 
-// ダイアログ データ
+	// ダイアログ データ
 #ifdef AFX_DESIGN_TIME
 	enum { IDD = IDD_ABOUTBOX };
 #endif
 
-	protected:
+protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV サポート
 
 // 実装
@@ -158,19 +161,42 @@ HCURSOR CMFCAppDlg::OnQueryDragIcon()
 
 void CMFCAppDlg::OnBnClickedButton1()
 {
+	HANDLE hTh[10];
+	unsigned int thID = 0;
+
+	for (int i = 0; i < 10; i++) {
+		hTh[i] = (HANDLE)_beginthreadex(NULL, 0, ProcessThread, L"", 0, &thID);
+	}
+
+	::WaitForMultipleObjects(10,hTh,true,INFINITE);
+
+err:
+	// ハンドルの解放
+	for (int i = 0; i < 10; i++) {
+		::CloseHandle(hTh[i]);
+	}
+
+	// 正常終了
+	return;
+}
+
+
+unsigned int __stdcall ProcessThread(void *pParam)
+{
+
 	HRESULT hResult = E_FAIL;
 
 	STARTUPINFO         tStartupInfo = { 0 };
 	PROCESS_INFORMATION tProcessInfomation = { 0 };
 
 	/*
-		プロセスの起動(notepadを起動する)
+		プロセスの起動
 	*/
-	//wchar_t cmd[] = L"C:\\Windows\\System32\\notepad.exe";
-	wchar_t cmd[] = L"..\\Modules\\UnzipNetFrm.exe";
+	wstring cmdStr = L"..\\Modules\\UnzipNetFrm.exe " + str;
+	//wchar_t cmd[] = L"..\\Modules\\UnzipNetFrm.exe";
 	BOOL bResult = CreateProcess(
-		NULL	  
-		, cmd
+		NULL
+		, (LPWSTR)cmdStr.c_str()
 		, NULL
 		, NULL
 		, FALSE
@@ -181,7 +207,7 @@ void CMFCAppDlg::OnBnClickedButton1()
 		, &tProcessInfomation
 	);
 	if (0 == bResult) {
-		return;
+		return 0;
 	}
 
 
@@ -221,5 +247,7 @@ err:
 	::CloseHandle(tProcessInfomation.hThread);
 
 	// 正常終了
-	return;
+	return 0;
 }
+
+
